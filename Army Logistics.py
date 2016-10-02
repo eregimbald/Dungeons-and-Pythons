@@ -1,36 +1,16 @@
 ###############################################################################
 import random
-import time
 
 
-# ver 0.01
+# ver 0.03
 
-# Here is the schema of the army dictionary
-# army[name] Name
-# army[type] Race
-# army[supp] Supplies
-# army[f%] [a%] [c%] [s%] for Footmen, Archers, Cavalry and Siege weaponry
-# army[%num] [%ski] [%mor] for Numbers, Skill and Morale
-# Example: army[aski] is the skill level of the archer unit
-# army[name] 0
-# army[type] 1
-# army[fnum] 2
-# army[anum] 3
-# army[cnum] 4
-# army[snum] 5
-# army[] 6
-# army[] 7
-# army[] 8
-# army[] 9
-# army[] 10
-# army[] 11
-# army[] 12
+#Two ## signs indicate a debugging print message
 
 def prompt(army):
 
     while True:
         commandlist = {"help : " : "Display a list of commands", "setup : " : "Create a new army", "danger : " : "March your army through dangerous terrain",
-                       "exit : " : "Exit the program"}
+                       "exit : " : "Exit the program", "status": "Display the army's status"}
 
         print
         command = raw_input("What would you like to do today? : ")
@@ -45,31 +25,24 @@ def prompt(army):
         elif command == "danger":
             dangterrain(army)
         #Debugging command
-        elif command == "print":
+        elif command == "status":
             for key, value in army.iteritems():
-                print str(value) + " " + key + " have perished."
+                print str(value) + " " + key
 
 
 def armysetup(army):
     print
-    print "Welcome to Army Logistics"
+    print "Welcome to Army Logistics!"
     print "What kind of army are you managing?"
+    print
     army["race"] = (raw_input("Human? Elf? Dwarf? Orc? Robots? etc. : "))
-
-    print
     army["footsoldiers"] = int(raw_input("How many foot soldiers are in your army? : "))
-
-    print
     army["archers"] = int(raw_input("How many archers are in your army? : "))
-
-    print
     army["cavalry"] = int(raw_input("How many horsemen are in your army? : "))
-
+    army["siege weapons"] = int(raw_input("How many siege weapons are in your army? : "))
     print
-    army["siege engines"] = int(raw_input("How many siege engies are in your army? : "))
-
+    print "### One supply unit will keep a soldier fed and fit for one day. ###"
     print
-    print "One supply unit will keep a soldier fed and fit for one day."
     army["supplies"] = int(raw_input("How many days worth of supplies does your army have? : "))
 
     return army
@@ -80,58 +53,77 @@ def armysetup(army):
     # armyraw = armyfoot + armyarch + armycava
 
 
-def deathisinevitable(deathtoll):
-    # army = {"Name": "The bananas", "Type": "human", "Footsoldiers": 10, "Archers": 20, "Cavalry": 30, "Siege weapons": 40}
-    transport = {"Footsoldiers": 0, "Archers": 0, "Cavalry": 0, "Siege weapons": 0}
+def deathisinevitable(deathtoll,army):
+    #This function splits up the dead between the 4 army categories
+    #deathtoll is the total amount of dead, now we have to decide who died
 
+    transport = {"footsoldiers": 0, "archers": 0, "cavalry": 0, "siege weapons": 0}
+
+    #While there are dead, pick one of the categories in transport
+    #Select a random number of soldiers less than or equal to deathtoll
+    #if there are at least this many soldiers in the selected category in the army, subtract them from army, add them to transport
+    #if not, do nothing, restart the loop
     while deathtoll > 0:
         pick = random.choice(transport.keys())
-        print "pick: " + pick
+        ##print "pick: " + pick
         dead = random.randint(1, deathtoll)
-        print "dead: " + str(dead)
-        print "armybefore: " + str(army[pick])
-        if army[pick] > 0:
+        ##print "dead: " + str(dead)
+        ##print "armybefore: " + str(army[pick])
+        if army[pick] >= dead:
             army[pick] -= dead
             transport[pick] += dead
             deathtoll -= dead
-            print "deathtoll: " + str(deathtoll)
-            print "armyafter %s: " % pick + str(army[pick])
-            print "=========="
+            ##print "deathtoll: " + str(deathtoll)
+            ##print "armyafter %s: " % pick + str(army[pick])
 
+    #Once the loop is complete and there are no more dead to distribute, display the total deaths by category
+    print "=========="
     for key, value in transport.iteritems():
         print str(value) + " " + key + " have perished."
 
 
 def dangterrain(army):
+    import time
     print
     print "Your army is traversing difficult terrain!"
-    terrain = raw_input("What kind of terrain? A body of (Water)? A narrow (Ridge) or a (Trap) field?")
+    terrain = raw_input("What kind of terrain? A body of (water)? A narrow (ridge) or a (trap) field? : ")
 
-    if terrain == "Water":
-        flow = int(raw_input("How strong is the flow of the water? Stagnant to raging current (0 - 3)"))
-        size = int(raw_input("How large is this water body? Pond to large lake (1 - 5)"))
-        boats = int(raw_input("How many boats is your army using?"))
-        men = int(raw_input("How many soldiers fit in a boat?"))
+    if terrain == "water":
+        flow = int(raw_input("How strong is the flow of the water? Stagnant to raging current (0 - 3) : "))
+        size = int(raw_input("How large is this water body? Pond to large lake (1 - 5) : "))
+        boats = int(raw_input("How many boats is your army using? : "))
+        men = int(raw_input("How many soldiers fit in a boat? : "))
 
-        trip = ((army[fnum] + army[anum] + army[cnum] + army[snum]) // men) // boats + 1
-        print "With %s soldiers and their gear to a boat, it's going to take %s trips to get to the other side" % men, trip
+        #Calculate the number of trips from shore A to shore B
+        #Trip = Total men, divided by menperboat - 1, for the guy who returns the boat to Shore A.
+        #Multiplied by 2, because boats have to return to shore A to get more soldiers. - 1 because the last trip stays on shore B.
+        #Divided by the number of boats, + 1 for the last boat which has less than total capacity.
+        #If the number of trips is even, - 1 because we're not bringing back the boats
+        trip = ((((army["footsoldiers"] + army["archers"] + army["cavalry"] + army["siege weapons"]) // (men - 1)) * 2) - 1) // boats + 1
+        if trip % 2 == 0:
+            trip -= 1
 
-        risk = 5 * flow + 1
-        print "The risk factor is %s!" % risk
-        time.sleep(1)
+        print
+        print "With %s soldiers and their gear to a boat, it's going to take %s trips to get to the other side" % (men, trip)
+        print
+
+        #DC is Strength of current x 4, + 1 to set a minimum of 1% chance of accidents
+        risk = 4 * flow + 1
+        print "##### The DC for an accident %s!##### " % risk
         deathtoll = 0
-        supptoll = 0
+        supplytoll = 0
+
+        raw_input("Press Enter to continue...")
 
         for i in range(trip):
             print
-            print "Trip number %s is in the water!" % i
-            time.sleep(0.2)
-            luck = randint(1, 100)
-            print "Roll 1d100 is %s!" % luck
-            time.sleep(1)
+            print "Trip number %s is in the water!" % (i + 1)
+            time.sleep(0.5)
+            roll = random.randint(1, 100)
+            print "Roll 1d100 = %s!" % roll
 
-            if luck > risk:
-                answer = randint(1, 3)
+            if roll > risk:
+                answer = random.randint(1, 3)
                 if answer == 1:
                     print "So far so good..."
                 elif answer == 2:
@@ -139,19 +131,19 @@ def dangterrain(army):
                 else:
                     print "Smooth sailing, baby!"
 
-            if luck <= risk:
+        #If the roll is less that 3x the DC, the accident results in deaths
+            if roll <= risk:
                 print "There's been an accident!"
                 time.sleep(1)
-                if (luck // 3) <= risk:
-                    dead = randint(1, 6)
+                if (roll // 3) <= risk:
+                    dead = random.randint(1, men)
                     deathtoll += dead
                     print "%s soldiers have fallen into the water! There were no survivors..." % (dead)
-                    time.sleep(1)
                 else:
-                    drop = randint(1, 6)
-                    supptoll += drop
+                    drop = random.randint(1, men)
+                    supplytoll += drop
                     print "%s supplies have fallen into the water! They can't be recovered..." % (drop)
-                    time.sleep(1)
+        time.sleep(1.5)
 
         # Embark time + travel time x flow
         time = 10 * trip + trip * ((10 * size) + ((size + 10) * flow))
@@ -159,30 +151,75 @@ def dangterrain(army):
         print "##########################################"
         print "The journey is complete!"
         print "It took %s trips to reach the other side." % trip
-        print "It took %s minutes to load and unload the boats." % 10 * trip
-        print "Because of the size and strength of the current, it took %s minutes to traverse the water" % (
-        (10 * size) + ((size + 10) * flow))
-        print "The complete journey too %s minutes!" % time
+        print "In total, it took %s minutes to load and unload the boats." % (10 * trip)
+        print "Because of the size of the body and strength of the current, a one-way trip took %s minutes." % ((10 * size) + ((size + 10) * flow))
+        print "The complete journey took %s hours, %s minutes!" % ((time//60), (time%60))
 
-        if supptoll == 0:
+        if supplytoll == 0:
             print "What's more, luck was on our side! We have not lost any supplies during the trip."
         else:
-            print "However, due to carelessness or sheer incompetence, we have lost %s supplies. Names will taken down..." % supptoll
+            print "However, due to carelessness or sheer incompetence, we have lost %s supplies. Names will taken down..." % supplytoll
+            army["supplies"] -= supplytoll
 
         if deathtoll == 0:
             print "The Gods' favour was with us! Nobody died!"
         else:
             print "Tragedy! We have lost a total of %s soldiers during the voyage!" % deathtoll
+            deathisinevitable(deathtoll,army)
 
-        deathisinevitable(deathtoll)
+    if terrain == "ridge":
+        distance = raw_input("How long is this ridge? (x feet) : ")
+        stability = raw_input("How solid is the ridge? Completely safe or as unstable as a one-legged pirate walking a tightrope?  (0 - 3) : ")
+        men = raw_input("By the ridge's width, how many men can walk abreast? : ")
+        speed = raw_input("Is the army moving at half-speed, full-speed or running for their lives? (1 - 3) : ")
 
+        #Something for if men < 3
+        #
+        #
+        #
+        #
+
+        totalmen = army["footsoldiers"] + army["archers"] + army["cavalry"] + army["siege weapons"]
+
+        time = (distance + (totalmen * 5 // men + (totalmen * 5 % men))) // (speed * 15) + distance % (speed * 15)
+
+        if men == 1:
+            if army["cavalry"] > 0:
+                print "This ridge is too narrow for cavalry, they will have to stay behind."
+                answer = raw_input("Shall we leave them behind? (yes/no) : ")
+                if answer == "yes":
+                    army["cavalry"] = 0
+            if army["siege weapons"] > 0:
+                print "This ridge is too narrow for siege weapons, they will have to stay behind."
+                answer = raw_input("Shall we leave them behind? (yes/no) : ")
+                if answer == "yes":
+                    army["siege weapons"] = 0
+
+        if men == 2:
+
+
+        print
+        print "With %s soldiers moving abreast, it will take % minutes to traverse the ridge." % time
+        print
+
+        # DC is Strength of current x 4, + 1 to set a minimum of 1% chance of accidents
+        risk = 4 * flow + 1
+        print "##### The DC for an accident %s!##### " % risk
+        deathtoll = 0
+        supplytoll = 0
 
 #######################################################
 
 army = dict()
 
-print "============Welcome to Dungeons and Pythons!============"
-print "Type --help for a list of commands."
+print "============ Welcome to Dungeons and Pythons! ============"
+print "Type help for a list of commands."
+
+army["footsoldiers"] = 60
+army["archers"] = 20
+army["cavalry"] = 0
+army["siege engines"] = 10
+army["supplies"] = 125
 
 prompt(army)
 
