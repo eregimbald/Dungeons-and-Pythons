@@ -150,10 +150,10 @@ def dangterrain(army):
         print
         print "##########################################"
         print "The journey is complete!"
-        print "It took %s trips to reach the other side." % trip
-        print "In total, it took %s minutes to load and unload the boats." % (10 * trip)
-        print "Because of the size of the body and strength of the current, a one-way trip took %s minutes." % ((10 * size) + ((size + 10) * flow))
-        print "The complete journey took %s hours, %s minutes!" % ((time//60), (time%60))
+        print "It took [%s trips] to reach the other side." % trip
+        print "In total, it took [%s minutes] to load and unload the boats." % (10 * trip)
+        print "Because of the size of the body and strength of the current, a one-way trip took [%s minutes]." % ((10 * size) + ((size + 10) * flow))
+        print "The complete journey took [%s hours, %s minutes]!" % ((time//60), (time%60))
 
         if supplytoll == 0:
             print "What's more, luck was on our side! We have not lost any supplies during the trip."
@@ -168,20 +168,13 @@ def dangterrain(army):
             deathisinevitable(deathtoll,army)
 
     if terrain == "ridge":
+        deconstruct = 0
         distance = raw_input("How long is this ridge? (x feet) : ")
         stability = raw_input("How solid is the ridge? Completely safe or as unstable as a one-legged pirate walking a tightrope?  (0 - 3) : ")
         men = raw_input("By the ridge's width, how many men can walk abreast? : ")
-        speed = raw_input("Is the army moving at half-speed, full-speed or running for their lives? (1 - 3) : ")
-
-        #Something for if men < 3
-        #
-        #
-        #
-        #
+        speed = raw_input("Is the army moving at half-speed, full-speed or are they hauling ass? (1 - 3) : ")
 
         totalmen = army["footsoldiers"] + army["archers"] + army["cavalry"] + army["siege weapons"]
-
-        time = (distance + (totalmen * 5 // men + (totalmen * 5 % men))) // (speed * 15) + distance % (speed * 15)
 
         if men == 1:
             if army["cavalry"] > 0:
@@ -196,11 +189,43 @@ def dangterrain(army):
                     army["siege weapons"] = 0
 
         if men == 2:
+            if army["cavalry"] > 0:
+                print "Space is tight, it will take longer to bring the horses through."
+                answer = raw_input("Shall we leave them behind? (yes/no) : ")
+                    if answer == "yes":
+                        army["cavalry"] = 0
+                    elif answer == "no":
+                    totalmen += army["cavalry"]
+            if army["siege weapons"] > 0:
+                print "This ridge is too narrow for siege weapons, they will have to stay behind unless we deconstruct them and rebuild them on the other side. (60 minutes)"
+                answer = raw_input("Shall we leave them behind? (yes/no) : ")
+                if answer == "yes":
+                    army["siege weapons"] = 0
+                elif answer == "no":
+                    deconstruct = 60
 
+        if men == 3:
+            if army["siege weapons"] > 0
+                print "Space is tight, it will take longer to bring the siege weapons through."
+                answer = raw_input("Shall we leave them behind? (yes/no) : ")
+                if answer == "yes":
+                    army["siege weapons"] = 0
+                elif answer == "no":
+                    totalmen += army["siege weapons"]
 
-        print
-        print "With %s soldiers moving abreast, it will take % minutes to traverse the ridge." % time
-        print
+        # Convert speed to fpm and float, Match army speed to the speed of siege weapons
+        # Calculate travel time + extra for length of the army
+        if army["siege weapons"] > 0:
+            speed = speed * 5 * 10.0
+        else:
+            speed = speed * 15 * 10.0
+
+        time = distance / speed + ((math.ceil(totalmen // men) + totalmen % men) * 5) / speed + deconstruct
+
+        print "With %s soldiers moving abreast, the passage took [%s minutes, %s seconds] or [%s rounds] to cross." % (int(time * 60 // 60), int(time * 60 % 60), int(math.ceil(time * 6)))
+
+############################## READY FOR DEATH
+
 
         # DC is Strength of current x 4, + 1 to set a minimum of 1% chance of accidents
         risk = 4 * flow + 1
