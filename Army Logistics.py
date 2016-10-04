@@ -1,6 +1,10 @@
 ###############################################################################
 import random
+import math
+import os
+import time
 
+os.system('mode con: cols=120 lines=40')
 
 #TODO
 #Alphabetical order in army[]
@@ -87,7 +91,6 @@ def deathisinevitable(deathtoll,army):
 
 
 def dangterrain(army):
-    import time
     print
     print "Your army is traversing difficult terrain!"
     terrain = raw_input("What kind of terrain? A body of (water)? A narrow (ridge) or a (trap) field? : ")
@@ -122,7 +125,7 @@ def dangterrain(army):
         for i in range(trip):
             print
             print "Trip number %s is in the water!" % (i + 1)
-            time.sleep(0.5)
+            time.sleep(1)
             roll = random.randint(1, 100)
             print "Roll 1d100 = %s!" % roll
 
@@ -139,7 +142,7 @@ def dangterrain(army):
             if roll <= risk:
                 print "There's been an accident!"
                 time.sleep(1)
-                if (roll // 3) <= risk:
+                if (risk // 3) <= roll:
                     dead = random.randint(1, men)
                     deathtoll += dead
                     print "%s soldiers have fallen into the water! There were no survivors..." % (dead)
@@ -171,9 +174,10 @@ def dangterrain(army):
             print "Tragedy! We have lost a total of %s soldiers during the voyage!" % deathtoll
             deathisinevitable(deathtoll,army)
 
+########################################################################
     if terrain == "ridge":
         deconstruct = 0
-        distance = raw_input("How long is this ridge? (x feet) : ")
+        distance = raw_input("How long is this ridge? (in feet) : ")
         stability = raw_input("How solid is the ridge? Completely safe or as unstable as a one-legged pirate walking a tightrope?  (0 - 3) : ")
         men = raw_input("By the ridge's width, how many men can walk abreast? : ")
         speed = raw_input("Is the army moving at half-speed, full-speed or are they hauling ass? (1 - 3) : ")
@@ -196,9 +200,9 @@ def dangterrain(army):
             if army["cavalry"] > 0:
                 print "Space is tight, it will take longer to bring the horses through."
                 answer = raw_input("Shall we leave them behind? (yes/no) : ")
-                    if answer == "yes":
-                        army["cavalry"] = 0
-                    elif answer == "no":
+                if answer == "yes":
+                    army["cavalry"] = 0
+                elif answer == "no":
                     totalmen += army["cavalry"]
             if army["siege weapons"] > 0:
                 print "This ridge is too narrow for siege weapons, they will have to stay behind unless we deconstruct them and rebuild them on the other side. (60 minutes)"
@@ -209,7 +213,7 @@ def dangterrain(army):
                     deconstruct = 60
 
         if men == 3:
-            if army["siege weapons"] > 0
+            if army["siege weapons"] > 0:
                 print "Space is tight, it will take longer to bring the siege weapons through."
                 answer = raw_input("Shall we leave them behind? (yes/no) : ")
                 if answer == "yes":
@@ -224,18 +228,59 @@ def dangterrain(army):
         else:
             speed = speed * 15 * 10.0
 
-        time = distance / speed + ((math.ceil(totalmen // men) + totalmen % men) * 5) / speed + deconstruct
+        time = distance / speed + ((math.ceil(totalmen // men) + men) * 5) / speed + deconstruct
 
-        print "With %s soldiers moving abreast, the passage took [%s minutes, %s seconds] or [%s rounds] to cross." % (int(time * 60 // 60), int(time * 60 % 60), int(math.ceil(time * 6)))
+        print "With {0} soldiers moving abreast, the passage should take [{1} minutes, {2} seconds] or [{3} rounds] to cross.".format(
+            men, time * 60 // 60, time * 60 % 60, math.ceil(time * 6))
 
-############################## READY FOR DEATH
-
-
-        # DC is Strength of current x 4, + 1 to set a minimum of 1% chance of accidents
-        risk = 4 * flow + 1
+        # DC is a factor of stability and speed, + 1 to set a minimum of 1% chance of accidents, rolled for 30 foot increments
+        risk = (4 * stability + 1) * speed
         print "##### The DC for an accident %s!##### " % risk
         deathtoll = 0
         supplytoll = 0
+
+        # Calculate how many rolls will be made, by increments of 30. If the last increment is < 30 but > 14, it counts as a whole increment.
+        trips = distance // 30
+        if trips % 30 > 14:
+            trips += 1
+
+        for i in range(trips):
+            print
+            print "The army has reached the {0} foot mark.".format(i * 30)
+            time.sleep(1)
+            roll = random.randint(1, 100)
+            print "Roll 1d100 = %s!" % roll
+
+            if roll > risk:
+                answer = random.randint(1, 3)
+                if answer == 1:
+                    print "So far so good..."
+                elif answer == 2:
+                    print "No problem!"
+                else:
+                    print "It's a cake-WALK."
+
+            # If the roll is less that 3x the DC, the accident results in deaths
+            if roll <= risk:
+                print "There's been an accident!"
+                time.sleep(1)
+                if (risk // 3) <= roll:
+                    dead = random.randint(1, men)
+                    deathtoll += dead
+                    if stability > random.randint(1,6):
+                        print "A portion of the ridge has collapsed!"
+                        print "Bridging this gap will surely cost us time!"
+                        deathtoll += dead
+                        time = time + 2
+                        print "%s soldiers have fallen into the void! Since they can't fly, we won't be seeing them again." % (
+                        dead)
+                    else:
+                        print "%s soldiers have fallen into the void! Since they can't fly, we won't be seeing them again." % (dead)
+                else:
+                    drop = random.randint(1, men)
+                    supplytoll += drop
+                    print "%s supplies have fallen into the water! They can't be recovered..." % (drop)
+        time.sleep(1.5)
 
 #######################################################
 
@@ -247,7 +292,7 @@ print "Type help for a list of commands."
 army["footsoldiers"] = 60
 army["archers"] = 20
 army["cavalry"] = 0
-army["siege engines"] = 10
+army["siege weapons"] = 10
 army["supplies"] = 125
 
 prompt(army)
