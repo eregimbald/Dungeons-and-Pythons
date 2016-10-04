@@ -2,7 +2,11 @@
 import random
 
 
-# ver 0.03
+#TODO
+#Alphabetical order in army[]
+#Ridge > Add death, revise math
+#Trap hall
+#Battle simulator
 
 #Two ## signs indicate a debugging print message
 
