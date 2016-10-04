@@ -146,12 +146,12 @@ def dangterrain(army):
         time.sleep(1.5)
 
         # Embark time + travel time x flow
-        time = 10 * trip + trip * ((10 * size) + ((size + 10) * flow))
+        time = 10 * trip // boats + trip * ((10 * size) + ((size + 10) * flow))
         print
         print "##########################################"
         print "The journey is complete!"
         print "It took [%s trips] to reach the other side." % trip
-        print "In total, it took [%s minutes] to load and unload the boats." % (10 * trip)
+        print "In total, it took [%s minutes] to load and unload the boats." % (10 * trip // boats)
         print "Because of the size of the body and strength of the current, a one-way trip took [%s minutes]." % ((10 * size) + ((size + 10) * flow))
         print "The complete journey took [%s hours, %s minutes]!" % ((time//60), (time%60))
 
