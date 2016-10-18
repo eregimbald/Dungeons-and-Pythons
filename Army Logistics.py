@@ -20,6 +20,7 @@ def prompt(army):
                        "exit : " : "Exit the program", "status : ": "Display the army's status"}
 
         print
+        print "-----------------------------------------------------"
         command = raw_input("What would you like to do today? : ")
 
         if command == "help":
@@ -106,7 +107,7 @@ def dangterrain(army):
             trip -= 1
 
         print
-        print "With %s soldiers and their gear to a boat, it's going to take %s trips to get to the other side" % (men, trip)
+        print "With %s soldiers and their gear to a boat, it's going to take %s trips to get to the other side." % (men, trip)
         print
 
         #DC is Strength of current x 4, + 1 to set a minimum of 1% chance of accidents
@@ -174,7 +175,7 @@ def dangterrain(army):
         distance = float(raw_input("How long is this ridge? (in feet) : "))
         stability = float(raw_input("How solid is the ridge? Completely safe or as unstable as a one-legged pirate walking a tightrope?  (0 - 3) : "))
         men = int(raw_input("By the ridge's width, how many men can walk abreast? : "))
-        speed = float(raw_input("Is the army moving at half-speed, full-speed or are they hauling ass? (1 - 3) : "))
+        speed = float(raw_input("Is the army moving at half-speed, full-speed, are they hauling ass? (1 - 3) : "))
 
         totalmen = army["footsoldiers"] + army["archers"] + army["cavalry"] + army["siege weapons"]
 
@@ -464,13 +465,13 @@ print "         ______/  /_/  /_/  /_/  /___________ "
 print "               | / \  / \  / \  / \  \____ "
 print "               |/   \/   \/   \/   \    o \ "
 print "                                    \_____/---<"
-print "=========== Type help for a list of commands. ==========="
+print "=========== Type help for a list of commands. =======v0.75"
 
-army["footsoldiers"] = 60
-army["archers"] = 20
-army["cavalry"] = 20
-army["siege weapons"] = 10
-army["supplies"] = 125
+#army["footsoldiers"] = 60
+#army["archers"] = 20
+#army["cavalry"] = 20
+#army["siege weapons"] = 10
+#army["supplies"] = 125
 
 prompt(army)
 
